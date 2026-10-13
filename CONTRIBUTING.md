@@ -35,7 +35,7 @@ A good bug report includes:
 
 ```bash
 git clone https://github.com/sakibreza229/kspatium.git
-cd org.sakibreza279.kspatium
+cd kspatium
 ```
 
 ### Install for testing
