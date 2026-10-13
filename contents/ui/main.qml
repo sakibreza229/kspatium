@@ -74,21 +74,9 @@ PlasmoidItem {
     property int animDuration: Math.max(0, plasmoid.configuration.animationDuration !== undefined ? plasmoid.configuration.animationDuration : 300)
     property bool canAddDesktops: plasmoid.configuration.canAddDesktops !== false
     property int dotShape: plasmoid.configuration.dotShape || 0
-    property var desktopIconNames: (plasmoid.configuration.desktopIcons || "home,code,gaming,work,media,chat,music,browser,design,files").split(",")
     property var desktopCustomNames: {
         var raw = plasmoid.configuration.desktopNames || ""
         return raw.trim().length > 0 ? raw.split(",") : []
-    }
-
-    // Available icon catalog (includes 3 fallback/general-purpose icons)
-    readonly property var availableIcons: ["home", "code", "gaming", "work", "media", "chat", "music", "browser", "design", "files", "window", "app", "grid"]
-
-    function iconForDesktop(idx) {
-        if (idx >= 0 && idx < desktopIconNames.length && desktopIconNames[idx].trim().length > 0) {
-            return Qt.resolvedUrl("icons/" + desktopIconNames[idx].trim() + ".svg")
-        }
-        // Fallback: use grid icon for unmapped desktops
-        return Qt.resolvedUrl("icons/grid.svg")
     }
 
     function nameForDesktop(idx) {
@@ -123,26 +111,22 @@ PlasmoidItem {
 
     Layout.minimumWidth: (isHorizontal
         ? (dotShape === 1 ? circleRow.implicitWidth
-           : dotShape === 3 ? iconRow.implicitWidth
-           : dotShape === 4 ? nameRow.implicitWidth
-           : dotShape === 5 ? numRow.implicitWidth
+           : dotShape === 3 ? nameRow.implicitWidth
+           : dotShape === 4 ? numRow.implicitWidth
            : (desktopCount * dotSize) + ((desktopCount - 1) * spacing) + (activeWidth - dotSize))
         : (dotShape === 1 ? circleColumn.implicitWidth
-           : dotShape === 3 ? iconColumn.implicitWidth
-           : dotShape === 4 ? nameColumn.implicitWidth
-           : dotShape === 5 ? numColumn.implicitWidth
+           : dotShape === 3 ? nameColumn.implicitWidth
+           : dotShape === 4 ? numColumn.implicitWidth
            : activeWidth)) + (2 * horizontalMargin)
 
     Layout.minimumHeight: !isHorizontal
         ? (dotShape === 1 ? circleColumn.implicitHeight
-           : dotShape === 3 ? iconColumn.implicitHeight
-           : dotShape === 4 ? nameColumn.implicitHeight
-           : dotShape === 5 ? numColumn.implicitHeight
+           : dotShape === 3 ? nameColumn.implicitHeight
+           : dotShape === 4 ? numColumn.implicitHeight
            : (desktopCount * dotSize) + ((desktopCount - 1) * spacing) + (activeHeight - dotSize))
         : (dotShape === 1 ? circleRow.implicitHeight
-           : dotShape === 3 ? iconRow.implicitHeight
-           : dotShape === 4 ? nameRow.implicitHeight
-           : dotShape === 5 ? numRow.implicitHeight
+           : dotShape === 3 ? nameRow.implicitHeight
+           : dotShape === 4 ? numRow.implicitHeight
            : activeHeight)
         
     Layout.preferredWidth: Layout.minimumWidth
@@ -190,7 +174,7 @@ PlasmoidItem {
 
     Timer {
         id: wallpaperTimer
-        interval: 5000
+        interval: 30000
         running: dynamicColors
         repeat: true
         onTriggered: checkWallpaper()
@@ -314,37 +298,8 @@ PlasmoidItem {
         }
     }
 
-    // --- KGlobalAccel: Global keyboard shortcuts ---
-    PlasmaCore.Action {
-        id: nextDesktopAction
-        text: i18n("Switch to Next Desktop")
-        icon.name: "go-next"
-        shortcut: plasmoid.configuration.nextDesktopShortcut
-        onTriggered: {
-            let target = wrapOn
-                ? ((currentDesktop + 1) % desktopCount)
-                : Math.min(currentDesktop + 1, desktopCount - 1)
-            if (target !== currentDesktop) switchToDesktop(target)
-        }
-    }
-
-    PlasmaCore.Action {
-        id: prevDesktopAction
-        text: i18n("Switch to Previous Desktop")
-        icon.name: "go-previous"
-        shortcut: plasmoid.configuration.prevDesktopShortcut
-        onTriggered: {
-            let target = wrapOn
-                ? ((currentDesktop - 1 + desktopCount) % desktopCount)
-                : Math.max(currentDesktop - 1, 0)
-            if (target !== currentDesktop) switchToDesktop(target)
-        }
-    }
-
     Component.onCompleted: {
         updateLayout()
-        plasmoid.setInternalAction("nextDesktop", nextDesktopAction)
-        plasmoid.setInternalAction("prevDesktop", prevDesktopAction)
         if (dynamicColors) checkWallpaper()
     }
 
@@ -362,22 +317,49 @@ PlasmoidItem {
             delegate: Item {
                 id: delegateItem
                 readonly property bool isHovered: mouseHandler.containsMouse
+                readonly property bool isActive: index === currentDesktop
 
-                x: isHorizontal ? (index < currentDesktop ? index * (dotSize + spacing) : (index > currentDesktop ? (index * (dotSize + spacing)) + (activeWidth - dotSize) : index * (dotSize + spacing))) : (parent.width - width) / 2
-                y: !isHorizontal ? (index < currentDesktop ? index * (dotSize + spacing) : (index > currentDesktop ? (index * (dotSize + spacing)) + (activeHeight - dotSize) : index * (dotSize + spacing))) : (parent.height - height) / 2
+                // Delegate item spans the full cross-axis so dots can center within it
+                x: isHorizontal
+                    ? (index < currentDesktop
+                        ? index * (dotSize + spacing)
+                        : (index > currentDesktop
+                            ? index * (dotSize + spacing) + (activeWidth - dotSize)
+                            : index * (dotSize + spacing)))
+                    : 0
+                y: !isHorizontal
+                    ? (index < currentDesktop
+                        ? index * (dotSize + spacing)
+                        : (index > currentDesktop
+                            ? index * (dotSize + spacing) + (activeHeight - dotSize)
+                            : index * (dotSize + spacing)))
+                    : 0
 
-                width: isHorizontal ? (index === currentDesktop ? activeWidth : dotSize) : dotSize
-                height: !isHorizontal ? (index === currentDesktop ? activeHeight : dotSize) : dotSize
+                width: isHorizontal
+                    ? (isActive ? activeWidth : dotSize)
+                    : parent.width
+                height: !isHorizontal
+                    ? (isActive ? activeHeight : dotSize)
+                    : parent.height
 
                 Rectangle {
                     id: desktopDot
-                    anchors.fill: parent
-                    color: index === currentDesktop ? activeColor : inactiveColor
-                    opacity: index === currentDesktop ? 1.0 : (isHovered ? 0.9 : 0.4)
-                    radius: dotShape === 0 ? height * 0.5 : 2
+                    // The dot itself: centered within the delegate
+                    anchors.centerIn: parent
+                    width: isHorizontal
+                        ? (isActive ? activeWidth : dotSize)
+                        : (isActive ? Math.max(dotSize, activeWidth) : dotSize)
+                    height: isHorizontal
+                        ? (isActive ? Math.max(dotSize, activeHeight) : dotSize)
+                        : (isActive ? activeHeight : dotSize)
+                    color: isActive ? activeColor : inactiveColor
+                    opacity: isActive ? 1.0 : (isHovered ? 0.9 : 0.4)
+                    radius: dotShape === 0 ? Math.min(width, height) * 0.5 : 2
 
                     Behavior on color { ColorAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
                     Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
+                    Behavior on width { NumberAnimation { duration: animDuration; easing.type: Easing.OutQuad } }
+                    Behavior on height { NumberAnimation { duration: animDuration; easing.type: Easing.OutQuad } }
 
                     MouseArea {
                         id: mouseHandler
@@ -390,20 +372,18 @@ PlasmoidItem {
 
                 Behavior on x { NumberAnimation { duration: animDuration; easing.type: Easing.OutQuad } }
                 Behavior on y { NumberAnimation { duration: animDuration; easing.type: Easing.OutQuad } }
-                Behavior on width { NumberAnimation { duration: animDuration; easing.type: Easing.OutQuad } }
-                Behavior on height { NumberAnimation { duration: animDuration; easing.type: Easing.OutQuad } }
             }
         }
 
         // --- Desktop Name mode (horizontal) ---
         Row {
             id: nameRow
-            visible: isHorizontal && dotShape === 4
+            visible: isHorizontal && dotShape === 3
             anchors.centerIn: parent
             spacing: root.spacing
 
             Repeater {
-                model: dotShape === 4 ? desktopCount : 0
+                model: dotShape === 3 ? desktopCount : 0
 
                 delegate: Item {
                     readonly property bool isHovered: nameMouseArea.containsMouse
@@ -438,12 +418,12 @@ PlasmoidItem {
         // --- Desktop Name mode (vertical) ---
         Column {
             id: nameColumn
-            visible: !isHorizontal && dotShape === 4
+            visible: !isHorizontal && dotShape === 3
             anchors.centerIn: parent
             spacing: root.spacing
 
             Repeater {
-                model: dotShape === 4 ? desktopCount : 0
+                model: dotShape === 3 ? desktopCount : 0
 
                 delegate: Item {
                     readonly property bool isHovered: nameMouseAreaV.containsMouse
@@ -475,99 +455,15 @@ PlasmoidItem {
             }
         }
 
-        // --- Icon mode (horizontal) ---
-        Row {
-            id: iconRow
-            visible: isHorizontal && dotShape === 3
-            anchors.centerIn: parent
-            spacing: root.spacing
-
-            Repeater {
-                model: dotShape === 3 ? desktopCount : 0
-
-                delegate: Item {
-                    readonly property bool isHovered: iconMouseH.containsMouse
-                    implicitWidth: Math.max(16, dotSize + 8)
-                    implicitHeight: Math.max(16, dotSize + 8)
-                    width: implicitWidth
-                    height: implicitHeight
-
-                    Kirigami.Icon {
-                        id: iconImgH
-                        anchors.centerIn: parent
-                        width: Math.max(14, dotSize + 4)
-                        height: width
-                        source: iconForDesktop(index)
-                        isMask: true
-                        color: index === currentDesktop ? activeColor : inactiveColor
-                        opacity: index === currentDesktop ? 1.0 : (isHovered ? 0.9 : 0.4)
-
-                        Behavior on color { ColorAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
-                        Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
-                    }
-
-                    MouseArea {
-                        id: iconMouseH
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: switchToDesktop(index)
-                    }
-                }
-            }
-        }
-
-        // --- Icon mode (vertical) ---
-        Column {
-            id: iconColumn
-            visible: !isHorizontal && dotShape === 3
-            anchors.centerIn: parent
-            spacing: root.spacing
-
-            Repeater {
-                model: dotShape === 3 ? desktopCount : 0
-
-                delegate: Item {
-                    readonly property bool isHovered: iconMouseV.containsMouse
-                    implicitWidth: Math.max(16, dotSize + 8)
-                    implicitHeight: Math.max(16, dotSize + 8)
-                    width: implicitWidth
-                    height: implicitHeight
-
-                    Kirigami.Icon {
-                        id: iconImgV
-                        anchors.centerIn: parent
-                        width: Math.max(14, dotSize + 4)
-                        height: width
-                        source: iconForDesktop(index)
-                        isMask: true
-                        color: index === currentDesktop ? activeColor : inactiveColor
-                        opacity: index === currentDesktop ? 1.0 : (isHovered ? 0.9 : 0.4)
-
-                        Behavior on color { ColorAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
-                        Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
-                    }
-
-                    MouseArea {
-                        id: iconMouseV
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: switchToDesktop(index)
-                    }
-                }
-            }
-        }
-
         // --- Desktop Number mode (horizontal) ---
         Row {
             id: numRow
-            visible: isHorizontal && dotShape === 5
+            visible: isHorizontal && dotShape === 4
             anchors.centerIn: parent
             spacing: root.spacing
 
             Repeater {
-                model: dotShape === 5 ? desktopCount : 0
+                model: dotShape === 4 ? desktopCount : 0
 
                 delegate: Item {
                     readonly property bool isHovered: numMouseH.containsMouse
@@ -603,12 +499,12 @@ PlasmoidItem {
         // --- Desktop Number mode (vertical) ---
         Column {
             id: numColumn
-            visible: !isHorizontal && dotShape === 5
+            visible: !isHorizontal && dotShape === 4
             anchors.centerIn: parent
             spacing: root.spacing
 
             Repeater {
-                model: dotShape === 5 ? desktopCount : 0
+                model: dotShape === 4 ? desktopCount : 0
 
                 delegate: Item {
                     readonly property bool isHovered: numMouseV.containsMouse
@@ -641,7 +537,7 @@ PlasmoidItem {
             }
         }
 
-        // --- Circle mode (horizontal) ---
+        // --- Ring mode (horizontal) ---
         Row {
             id: circleRow
             visible: isHorizontal && dotShape === 1
@@ -653,8 +549,8 @@ PlasmoidItem {
 
                 delegate: Item {
                     readonly property bool isHovered: circleMouseH.containsMouse
-                    implicitWidth: dotSize + 4
-                    implicitHeight: dotSize + 4
+                    implicitWidth: Math.max(dotSize + 4, dotSize)
+                    implicitHeight: Math.max(dotSize + 4, dotSize)
                     width: implicitWidth
                     height: implicitHeight
 
@@ -662,29 +558,36 @@ PlasmoidItem {
                     Rectangle {
                         id: circleRingH
                         anchors.centerIn: parent
-                        width: dotSize
-                        height: dotSize
-                        radius: dotSize / 2
+                        width: Math.round(dotSize)
+                        height: Math.round(dotSize)
+                        radius: width / 2
                         color: "transparent"
-                        border.width: Math.max(1.5, dotSize * 0.12)
+                        border.width: Math.max(1, Math.round(dotSize * 0.12))
                         border.color: index === currentDesktop ? activeColor : inactiveColor
                         opacity: index === currentDesktop ? 1.0 : (isHovered ? 0.9 : 0.4)
+                        antialiasing: true
 
                         Behavior on border.color { ColorAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
                         Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
-                    }
 
-                    // Inner filled dot (active only)
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: dotSize * 0.45
-                        height: width
-                        radius: width / 2
-                        color: activeColor
-                        visible: index === currentDesktop
-                        opacity: index === currentDesktop ? 1.0 : 0.0
+                        // Inner filled dot (active only) - exactly centered inside the ring
+                        Rectangle {
+                            // ~45% of the ring, nudged by 1px if needed so that
+                            // (ring - dot) is even and both sides get the same gap
+                            readonly property int baseSize: Math.max(2, Math.round(parent.width * 0.45))
+                            readonly property int snappedSize: ((parent.width - baseSize) % 2 === 0) ? baseSize : baseSize + 1
 
-                        Behavior on opacity { NumberAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
+                            anchors.centerIn: parent
+                            width: snappedSize
+                            height: snappedSize
+                            radius: width / 2
+                            color: activeColor
+                            visible: index === currentDesktop
+                            opacity: index === currentDesktop ? 1.0 : 0.0
+                            antialiasing: true
+
+                            Behavior on opacity { NumberAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
+                        }
                     }
 
                     MouseArea {
@@ -698,7 +601,7 @@ PlasmoidItem {
             }
         }
 
-        // --- Circle mode (vertical) ---
+        // --- Ring mode (vertical) ---
         Column {
             id: circleColumn
             visible: !isHorizontal && dotShape === 1
@@ -710,8 +613,8 @@ PlasmoidItem {
 
                 delegate: Item {
                     readonly property bool isHovered: circleMouseV.containsMouse
-                    implicitWidth: dotSize + 4
-                    implicitHeight: dotSize + 4
+                    implicitWidth: Math.max(dotSize + 4, dotSize)
+                    implicitHeight: Math.max(dotSize + 4, dotSize)
                     width: implicitWidth
                     height: implicitHeight
 
@@ -719,29 +622,36 @@ PlasmoidItem {
                     Rectangle {
                         id: circleRingV
                         anchors.centerIn: parent
-                        width: dotSize
-                        height: dotSize
-                        radius: dotSize / 2
+                        width: Math.round(dotSize)
+                        height: Math.round(dotSize)
+                        radius: width / 2
                         color: "transparent"
-                        border.width: Math.max(1.5, dotSize * 0.12)
+                        border.width: Math.max(1, Math.round(dotSize * 0.12))
                         border.color: index === currentDesktop ? activeColor : inactiveColor
                         opacity: index === currentDesktop ? 1.0 : (isHovered ? 0.9 : 0.4)
+                        antialiasing: true
 
                         Behavior on border.color { ColorAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
                         Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
-                    }
 
-                    // Inner filled dot (active only)
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: dotSize * 0.45
-                        height: width
-                        radius: width / 2
-                        color: activeColor
-                        visible: index === currentDesktop
-                        opacity: index === currentDesktop ? 1.0 : 0.0
+                        // Inner filled dot (active only) - exactly centered inside the ring
+                        Rectangle {
+                            // ~45% of the ring, nudged by 1px if needed so that
+                            // (ring - dot) is even and both sides get the same gap
+                            readonly property int baseSize: Math.max(2, Math.round(parent.width * 0.45))
+                            readonly property int snappedSize: ((parent.width - baseSize) % 2 === 0) ? baseSize : baseSize + 1
 
-                        Behavior on opacity { NumberAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
+                            anchors.centerIn: parent
+                            width: snappedSize
+                            height: snappedSize
+                            radius: width / 2
+                            color: activeColor
+                            visible: index === currentDesktop
+                            opacity: index === currentDesktop ? 1.0 : 0.0
+                            antialiasing: true
+
+                            Behavior on opacity { NumberAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
+                        }
                     }
 
                     MouseArea {

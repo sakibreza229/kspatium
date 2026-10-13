@@ -1,93 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
                           http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
-  <kcfgfile name=""/>
-  <group name="General">
-    <entry name="dotSizeCustom" type="Int">
-      <label>Size of inactive desktop dots</label>
-      <default>8</default>
-    </entry>
-    <entry name="spacingFactor" type="Double">
-      <label>Spacing factor between dots</label>
-      <default>0.1</default>
-      <min>0.1</min>
-      <max>0.9</max>
-    </entry>
-    <entry name="horizontalMargin" type="Int">
-      <label>Horizontal margin (left and right) in pixels</label>
-      <default>0</default>
-      <min>0</min>
-      <max>10</max>
-    </entry>
-    <entry name="activeSizeW" type="Int">
-      <label>Width of active desktop dot</label>
-      <default>24</default>
-    </entry>
-    <entry name="activeSizeH" type="Int">
-      <label>Height of active desktop dot</label>
-      <default>8</default>
-    </entry>
-    <entry name="navigationMode" type="Int">
-      <label>Workspace switching mode (0=Cycle, 1=Fixed)</label>
-      <default>0</default>
-    </entry>
-    <entry name="desktopWrapOn" type="Bool">
-      <label>Wrap around when scrolling past ends</label>
-      <default>true</default>
-    </entry>
-    <entry name="dynamicColorsEnabled" type="Bool">
-      <label>Adapt colors automatically according to the desktop wallpaper</label>
-      <default>false</default>
-    </entry>
-    <entry name="customColorsEnabled" type="Bool">
-      <label>Use custom colors for dots</label>
-      <default>false</default>
-    </entry>
-    <entry name="activeColor" type="String">
-      <label>Color for active desktop dot</label>
-      <default>white</default>
-    </entry>
-    <entry name="inactiveColor" type="String">
-      <label>Color for inactive desktop dots</label>
-      <default>gray</default>
-    </entry>
-    <entry name="animationDuration" type="Int">
-      <label>Animation duration in milliseconds</label>
-      <default>300</default>
-    </entry>
-    <entry name="canAddDesktops" type="Bool">
-      <label>Allow adding/removing desktops</label>
-      <default>true</default>
-    </entry>
-    <entry name="dotShape" type="Int">
-      <label>Shape of desktop dots (0=dot, 1=circle, 2=square, 3=icon, 4=name, 5=number)</label>
-      <default>0</default>
-    </entry>
-    <entry name="desktopIcons" type="String">
-      <label>Per-desktop icon names for icon mode (comma-separated)</label>
-      <default>home,code,gaming,work,media,chat,music,browser,design,files</default>
-    </entry>
-    <entry name="desktopNames" type="String">
-      <label>Per-desktop custom names for name mode (comma-separated, empty = use system names)</label>
-      <default></default>
-    </entry>
-    <entry name="fixedDotCountEnabled" type="Bool">
-      <label>Use a fixed number of dots</label>
-      <default>false</default>
-    </entry>
-    <entry name="fixedDotCount" type="Int">
-      <label>Fixed number of dots to display</label>
-      <default>5</default>
-    </entry>
-    <entry name="nextDesktopShortcut" type="String">
-      <label>Global shortcut to switch to next desktop</label>
-      <default></default>
-    </entry>
-    <entry name="prevDesktopShortcut" type="String">
-      <label>Global shortcut to switch to previous desktop</label>
-      <default></default>
-    </entry>
-  </group>
+<kcfgfile name=""/>
+<group name="General">
+<entry name="dotSizeCustom" type="Int">
+<label>Size of inactive desktop dots</label>
+<default>8</default>
+</entry>
+<entry name="spacingFactor" type="Double">
+<label>Spacing factor between dots</label>
+<default>0.1</default>
+<min>0.1</min>
+<max>0.9</max>
+</entry>
+<entry name="horizontalMargin" type="Int">
+<label>Horizontal margin (left and right) in pixels</label>
+<default>0</default>
+<min>0</min>
+<max>10</max>
+</entry>
+<entry name="activeSizeW" type="Int">
+<label>Width of active desktop dot</label>
+<default>24</default>
+</entry>
+<entry name="activeSizeH" type="Int">
+<label>Height of active desktop dot</label>
+<default>8</default>
+</entry>
+<entry name="navigationMode" type="Int">
+<label>Workspace switching mode (0=Cycle, 1=Fixed)</label>
+<default>0</default>
+</entry>
+<entry name="desktopWrapOn" type="Bool">
+<label>Wrap around when scrolling past ends</label>
+<default>true</default>
+</entry>
+<entry name="dynamicColorsEnabled" type="Bool">
+<label>Adapt colors automatically according to the desktop wallpaper</label>
+<default>false</default>
+</entry>
+<entry name="customColorsEnabled" type="Bool">
+<label>Use custom colors for dots</label>
+<default>false</default>
+</entry>
+<entry name="activeColor" type="String">
+<label>Color for active desktop dot</label>
+<default>white</default>
+</entry>
+<entry name="inactiveColor" type="String">
+<label>Color for inactive desktop dots</label>
+<default>gray</default>
+</entry>
+<entry name="animationDuration" type="Int">
+<label>Animation duration in milliseconds</label>
+<default>300</default>
+</entry>
+<entry name="canAddDesktops" type="Bool">
+<label>Allow adding/removing desktops</label>
+<default>true</default>
+</entry>
+<entry name="dotShape" type="Int">
+<label>Shape of desktop dots (0=dot, 1=ring, 2=square, 3=name, 4=number)</label>
+<default>0</default>
+</entry>
+<entry name="desktopNames" type="String">
+<label>Per-desktop custom names for name mode (comma-separated, empty = use system names)</label>
+<default></default>
+</entry>
+<entry name="fixedDotCountEnabled" type="Bool">
+<label>Use a fixed number of dots</label>
+<default>false</default>
+</entry>
+<entry name="fixedDotCount" type="Int">
+<label>Fixed number of dots to display</label>
+<default>5</default>
+</entry>
+</group>
 </kcfg>

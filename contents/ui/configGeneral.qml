@@ -9,12 +9,11 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import QtQuick.Dialogs
 import org.kde.kirigami as Kirigami
-import org.kde.kquickcontrols as KQuickControls
 import org.kde.taskmanager as TaskManager
 
-Kirigami.FormLayout {
+Kirigami.ScrollablePage {
     id: root
-    
+
     property alias cfg_dotSizeCustom: dotSizeSpin.value
     property alias cfg_activeSizeW: activeWidthSpin.value
     property alias cfg_activeSizeH: activeHeightSpin.value
@@ -29,33 +28,11 @@ Kirigami.FormLayout {
     property real cfg_spacingFactor: 0.1
     property alias cfg_horizontalMargin: horizontalMarginSpin.value
     property alias cfg_dotShape: dotShapeCombo.currentIndex
-    property string cfg_desktopIcons: "home,code,gaming,work,media,chat,music,browser,design,files"
     property string cfg_desktopNames: ""
     property alias cfg_fixedDotCountEnabled: fixedDotCountCheck.checked
     property alias cfg_fixedDotCount: fixedDotCountSpin.value
-    property alias cfg_nextDesktopShortcut: nextShortcutItem.keySequence
-    property alias cfg_prevDesktopShortcut: prevShortcutItem.keySequence
-
-    readonly property var availableIcons: ["home", "code", "gaming", "work", "media", "chat", "music", "browser", "design", "files", "window", "app", "grid"]
-    readonly property var iconLabels: [
-        i18n("Home"), i18n("Code"), i18n("Gaming"), i18n("Work"), i18n("Media"),
-        i18n("Chat"), i18n("Music"), i18n("Browser"), i18n("Design"), i18n("Files"),
-        i18n("Window"), i18n("App"), i18n("Grid")
-    ]
 
     readonly property QtObject virtualDesktopInfo: TaskManager.VirtualDesktopInfo {}
-
-    function getDesktopIconsList() {
-        return cfg_desktopIcons.split(",")
-    }
-
-    function setDesktopIcon(desktopIndex, iconName) {
-        var list = getDesktopIconsList()
-        // Extend list if needed
-        while (list.length <= desktopIndex) list.push(availableIcons[list.length % availableIcons.length])
-        list[desktopIndex] = iconName
-        cfg_desktopIcons = list.join(",")
-    }
 
     function getDesktopNamesList() {
         if (!cfg_desktopNames || cfg_desktopNames.trim().length === 0) return []
@@ -87,172 +64,6 @@ Kirigami.FormLayout {
         return i18n("Desktop %1", desktopIndex + 1)
     }
 
-    Kirigami.Heading {
-        Kirigami.FormData.isSection: true
-        text: i18n("Appearance")
-    }
-
-    QQC2.ComboBox {
-        id: dotShapeCombo
-        Kirigami.FormData.label: i18n("Shape:")
-        model: [i18n("Dot"), i18n("Circle"), i18n("Square"), i18n("Icon"), i18n("Desktop Name"), i18n("Desktop Number")]
-    }
-
-    // --- Per-desktop name editor (visible only in Desktop Name mode) ---
-    ColumnLayout {
-        visible: dotShapeCombo.currentIndex === 4
-        Kirigami.FormData.label: i18n("Desktop Names:")
-        spacing: Kirigami.Units.smallSpacing
-
-        QQC2.Label {
-            text: i18n("Set a custom name for each virtual desktop:")
-            font.italic: true
-            opacity: 0.7
-        }
-
-        Repeater {
-            model: virtualDesktopInfo.numberOfDesktops || 1
-
-            delegate: RowLayout {
-                spacing: Kirigami.Units.smallSpacing
-                readonly property int desktopIdx: index
-
-                QQC2.Label {
-                    text: i18n("Desktop %1:", desktopIdx + 1)
-                    Layout.minimumWidth: 80
-                }
-
-                QQC2.TextField {
-                    id: nameField
-                    Layout.fillWidth: true
-                    placeholderText: (virtualDesktopInfo.desktopNames && virtualDesktopInfo.desktopNames[desktopIdx])
-                        ? virtualDesktopInfo.desktopNames[desktopIdx]
-                        : i18n("Desktop %1", desktopIdx + 1)
-                    text: root.getDesktopName(desktopIdx)
-                    onTextEdited: {
-                        root.setDesktopName(desktopIdx, text)
-                    }
-                }
-            }
-        }
-    }
-
-    // --- Per-desktop icon picker (visible only in Icon mode) ---
-    ColumnLayout {
-        visible: dotShapeCombo.currentIndex === 3
-        Kirigami.FormData.label: i18n("Desktop Icons:")
-        spacing: Kirigami.Units.smallSpacing
-
-        QQC2.Label {
-            text: i18n("Choose an icon for each virtual desktop:")
-            font.italic: true
-            opacity: 0.7
-        }
-
-        Repeater {
-            model: virtualDesktopInfo.numberOfDesktops || 1
-
-            delegate: RowLayout {
-                spacing: Kirigami.Units.smallSpacing
-                readonly property int desktopIdx: index
-                readonly property string currentIconName: {
-                    var list = root.getDesktopIconsList()
-                    if (desktopIdx < list.length) return list[desktopIdx].trim()
-                    return root.availableIcons[desktopIdx % root.availableIcons.length]
-                }
-
-                QQC2.Label {
-                    text: (virtualDesktopInfo.desktopNames && virtualDesktopInfo.desktopNames[desktopIdx])
-                          ? virtualDesktopInfo.desktopNames[desktopIdx] + ":"
-                          : i18n("Desktop %1:", desktopIdx + 1)
-                    Layout.minimumWidth: 80
-                }
-
-                Kirigami.Icon {
-                    source: Qt.resolvedUrl("icons/" + currentIconName + ".svg")
-                    isMask: true
-                    color: Kirigami.Theme.textColor
-                    width: 20
-                    height: 20
-                }
-
-                QQC2.ComboBox {
-                    id: iconCombo
-                    Layout.fillWidth: true
-                    model: root.iconLabels
-                    currentIndex: {
-                        var idx = root.availableIcons.indexOf(currentIconName)
-                        return idx >= 0 ? idx : 0
-                    }
-                    onActivated: function(comboIndex) {
-                        root.setDesktopIcon(desktopIdx, root.availableIcons[comboIndex])
-                    }
-                }
-            }
-        }
-    }
-
-    QQC2.SpinBox {
-        id: dotSizeSpin
-        Kirigami.FormData.label: dotShapeCombo.currentIndex <= 2 ? i18n("Dot Size (px):") : (dotShapeCombo.currentIndex === 3 ? i18n("Icon Size (px):") : i18n("Font Size (px):"))
-        from: 8; to: 24
-    }
-
-    QQC2.SpinBox {
-        id: spacingSpin
-        Kirigami.FormData.label: i18n("Spacing Factor:")
-        from: 1; to: 9; stepSize: 1
-        value: Math.round((root.cfg_spacingFactor || 0.1) * 10)
-        onValueModified: root.cfg_spacingFactor = value / 10.0
-        textFromValue: (value, locale) => Number(value / 10.0).toLocaleString(locale, 'f', 1)
-        valueFromText: (text, locale) => Math.round(Number.fromLocaleString(locale, text) * 10)
-    }
-
-    QQC2.SpinBox {
-        id: horizontalMarginSpin
-        Kirigami.FormData.label: i18n("Side Margin (px):")
-        from: 0; to: 10; stepSize: 1
-    }
-
-    QQC2.SpinBox {
-        id: activeWidthSpin
-        Kirigami.FormData.label: i18n("Active Width (px):")
-        from: 8; to: 64
-        enabled: dotShapeCombo.currentIndex === 0 || dotShapeCombo.currentIndex === 2
-    }
-
-    QQC2.SpinBox {
-        id: activeHeightSpin
-        Kirigami.FormData.label: i18n("Active Height (px):")
-        from: 8; to: 16
-        enabled: dotShapeCombo.currentIndex === 0 || dotShapeCombo.currentIndex === 2
-    }
-
-    Kirigami.Heading {
-        Kirigami.FormData.isSection: true
-        text: i18n("Colors")
-    }
-
-    QQC2.CheckBox {
-        id: dynamicColorsCheck
-        Kirigami.FormData.label: i18n("Dynamic Colors:")
-        text: i18n("Adapt colors automatically from desktop wallpaper")
-    }
-
-    QQC2.Label {
-        visible: dynamicColorsCheck.checked
-        text: i18n("Colors adapt dynamically to your active wallpaper tone and accent.")
-        font.italic: true
-        opacity: 0.7
-    }
-
-    QQC2.CheckBox {
-        id: customColorsCheck
-        Kirigami.FormData.label: i18n("Custom Colors:")
-        text: i18n("Use custom colors")
-        enabled: !dynamicColorsCheck.checked
-    }
-
     function normalizeToHex(colorString) {
         if (!colorString) return '#ffffff'
         var c = Qt.color(colorString)
@@ -265,70 +76,7 @@ Kirigami.FormLayout {
         return '#ffffff'
     }
 
-    RowLayout {
-        Kirigami.FormData.label: i18n("Active Color:")
-        visible: customColorsCheck.checked && !dynamicColorsCheck.checked
-        spacing: Kirigami.Units.smallSpacing
-
-        Rectangle {
-            width: 24; height: 24; radius: 4
-            color: (cfg_activeColor && Qt.color(cfg_activeColor).valid) ? cfg_activeColor : "#3daee9"
-            border.color: Kirigami.Theme.separatorColor || "#55808080"
-            border.width: 1
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    activeColorDialog.selectedColor = Qt.color(cfg_activeColor || "#3daee9")
-                    activeColorDialog.open()
-                }
-            }
-        }
-
-        QQC2.TextField {
-            id: activeColorField
-            Layout.preferredWidth: 90
-            placeholderText: "#RRGGBB"
-            Component.onCompleted: text = root.normalizeToHex(cfg_activeColor)
-            onEditingFinished: {
-                var c = Qt.color(text)
-                if (c.valid) cfg_activeColor = root.normalizeToHex(text)
-            }
-        }
-    }
-
-    RowLayout {
-        Kirigami.FormData.label: i18n("Inactive Color:")
-        visible: customColorsCheck.checked && !dynamicColorsCheck.checked
-        spacing: Kirigami.Units.smallSpacing
-
-        Rectangle {
-            width: 24; height: 24; radius: 4
-            color: (cfg_inactiveColor && Qt.color(cfg_inactiveColor).valid) ? cfg_inactiveColor : "#808080"
-            border.color: Kirigami.Theme.separatorColor || "#55808080"
-            border.width: 1
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    inactiveColorDialog.selectedColor = Qt.color(cfg_inactiveColor || "#808080")
-                    inactiveColorDialog.open()
-                }
-            }
-        }
-
-        QQC2.TextField {
-            id: inactiveColorField
-            Layout.preferredWidth: 90
-            placeholderText: "#RRGGBB"
-            Component.onCompleted: text = root.normalizeToHex(cfg_inactiveColor)
-            onEditingFinished: {
-                var c = Qt.color(text)
-                if (c.valid) cfg_inactiveColor = root.normalizeToHex(text)
-            }
-        }
-    }
-
+    // --- Color dialogs (non-visual, kept outside the FormLayout) ---
     ColorDialog {
         id: activeColorDialog
         onAccepted: {
@@ -347,78 +95,254 @@ Kirigami.FormLayout {
         }
     }
 
-    Kirigami.Heading {
-        Kirigami.FormData.isSection: true
-        text: i18n("Behavior")
-    }
+    Kirigami.FormLayout {
 
-    QQC2.ComboBox {
-        id: navigationModeCombo
-        Kirigami.FormData.label: i18n("Switching Mode:")
-        model: [
-            i18n("Cycle (continuous loop)"),
-            i18n("Fixed (stop at first and last workspace)")
-        ]
-        Component.onCompleted: {
-            // The cfg_navigationMode alias already loaded the saved index into currentIndex.
-            // Just sync the derived cfg_desktopWrapOn property on load.
-            root.cfg_desktopWrapOn = (currentIndex === 0)
+        Kirigami.Heading {
+            Kirigami.FormData.isSection: true
+            text: i18n("Appearance")
         }
-        onCurrentIndexChanged: {
-            root.cfg_desktopWrapOn = (currentIndex === 0)
+
+        QQC2.ComboBox {
+            id: dotShapeCombo
+            Kirigami.FormData.label: i18n("Shape:")
+            model: [i18n("Dot"), i18n("Ring"), i18n("Square"), i18n("Desktop Name"), i18n("Desktop Number")]
         }
-    }
 
-    QQC2.Label {
-        text: navigationModeCombo.currentIndex === 0
-            ? i18n("Scrolling continuously cycles across workspaces (1 → 2 → 3 → 1).")
-            : i18n("Scrolling stops at boundaries without looping back to the beginning.")
-        font.italic: true
-        opacity: 0.7
-    }
+        // --- Per-desktop name editor (visible only in Desktop Name mode) ---
+        Kirigami.Heading {
+            Kirigami.FormData.isSection: true
+            visible: dotShapeCombo.currentIndex === 3
+            level: 3
+            text: i18n("Desktop Names")
+        }
 
-    QQC2.SpinBox {
-        id: animationSpin
-        Kirigami.FormData.label: i18n("Animation (ms):")
-        from: 0; to: 1000; stepSize: 50
-    }
+        ColumnLayout {
+            visible: dotShapeCombo.currentIndex === 3
+            Layout.fillWidth: true
+            spacing: Kirigami.Units.smallSpacing
 
+            Repeater {
+                model: virtualDesktopInfo.numberOfDesktops || 1
 
-    QQC2.CheckBox {
-        id: addDesktopsCheck
-        Kirigami.FormData.label: i18n("Desktop Management:")
-        text: i18n("Allow adding/removing via context menu")
-    }
+                delegate: RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+                    readonly property int desktopIdx: index
 
-    QQC2.CheckBox {
-        id: fixedDotCountCheck
-        Kirigami.FormData.label: i18n("Fixed Dot Count:")
-        text: i18n("Show a fixed number of dots")
-    }
+                    QQC2.Label {
+                        text: i18n("Desktop %1:", desktopIdx + 1)
+                        Layout.minimumWidth: Kirigami.Units.gridUnit * 4
+                    }
 
-    QQC2.SpinBox {
-        id: fixedDotCountSpin
-        Kirigami.FormData.label: i18n("Number of dots:")
-        from: 1; to: 20
-        enabled: fixedDotCountCheck.checked
-    }
+                    QQC2.TextField {
+                        id: nameField
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                        placeholderText: (virtualDesktopInfo.desktopNames && virtualDesktopInfo.desktopNames[desktopIdx])
+                            ? virtualDesktopInfo.desktopNames[desktopIdx]
+                            : i18n("Desktop %1", desktopIdx + 1)
+                        text: root.getDesktopName(desktopIdx)
+                        onTextEdited: {
+                            root.setDesktopName(desktopIdx, text)
+                        }
+                    }
+                }
+            }
 
-    Kirigami.Heading {
-        Kirigami.FormData.isSection: true
-        text: i18n("Keyboard Shortcuts")
-    }
+            QQC2.Label {
+                text: i18n("Set a custom name for each virtual desktop.")
+                font.italic: true
+                opacity: 0.7
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 16
+            }
+        }
 
-    KQuickControls.KeySequenceItem {
-        id: nextShortcutItem
-        Kirigami.FormData.label: i18n("Next Desktop:")
-        checkForConflictsAgainst: KQuickControls.ShortcutType.GlobalShortcuts
-        modifierlessAllowed: false
-    }
+        QQC2.SpinBox {
+            id: dotSizeSpin
+            Kirigami.FormData.label: dotShapeCombo.currentIndex <= 2 ? i18n("Dot Size (px):") : i18n("Font Size (px):")
+            from: 8; to: 24
+        }
 
-    KQuickControls.KeySequenceItem {
-        id: prevShortcutItem
-        Kirigami.FormData.label: i18n("Previous Desktop:")
-        checkForConflictsAgainst: KQuickControls.ShortcutType.GlobalShortcuts
-        modifierlessAllowed: false
+        QQC2.SpinBox {
+            id: spacingSpin
+            Kirigami.FormData.label: i18n("Spacing Factor:")
+            from: 1; to: 9; stepSize: 1
+            value: Math.round((root.cfg_spacingFactor || 0.1) * 10)
+            onValueModified: root.cfg_spacingFactor = value / 10.0
+            textFromValue: (value, locale) => Number(value / 10.0).toLocaleString(locale, 'f', 1)
+            valueFromText: (text, locale) => Math.round(Number.fromLocaleString(locale, text) * 10)
+        }
+
+        QQC2.SpinBox {
+            id: horizontalMarginSpin
+            Kirigami.FormData.label: i18n("Side Margin (px):")
+            from: 0; to: 10; stepSize: 1
+        }
+
+        QQC2.SpinBox {
+            id: activeWidthSpin
+            Kirigami.FormData.label: i18n("Active Width (px):")
+            from: 8; to: 64
+            enabled: dotShapeCombo.currentIndex === 0 || dotShapeCombo.currentIndex === 2
+        }
+
+        QQC2.SpinBox {
+            id: activeHeightSpin
+            Kirigami.FormData.label: i18n("Active Height (px):")
+            from: 8; to: 16
+            enabled: dotShapeCombo.currentIndex === 0 || dotShapeCombo.currentIndex === 2
+        }
+
+        Kirigami.Heading {
+            Kirigami.FormData.isSection: true
+            text: i18n("Colors")
+        }
+
+        QQC2.CheckBox {
+            id: dynamicColorsCheck
+            Kirigami.FormData.label: i18n("Dynamic Colors:")
+            text: i18n("Adapt colors automatically from desktop wallpaper")
+        }
+
+        QQC2.Label {
+            visible: dynamicColorsCheck.checked
+            text: i18n("Colors adapt dynamically to your active wallpaper tone and accent.")
+            font.italic: true
+            opacity: 0.7
+            wrapMode: Text.WordWrap
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 20
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 20
+        }
+
+        QQC2.CheckBox {
+            id: customColorsCheck
+            Kirigami.FormData.label: i18n("Custom Colors:")
+            text: i18n("Use custom colors")
+            enabled: !dynamicColorsCheck.checked
+        }
+
+        RowLayout {
+            Kirigami.FormData.label: i18n("Active Color:")
+            visible: customColorsCheck.checked && !dynamicColorsCheck.checked
+            spacing: Kirigami.Units.smallSpacing
+
+            Rectangle {
+                width: 24; height: 24; radius: 4
+                color: (cfg_activeColor && Qt.color(cfg_activeColor).valid) ? cfg_activeColor : "#3daee9"
+                border.color: Kirigami.Theme.separatorColor || "#55808080"
+                border.width: 1
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        activeColorDialog.selectedColor = Qt.color(cfg_activeColor || "#3daee9")
+                        activeColorDialog.open()
+                    }
+                }
+            }
+
+            QQC2.TextField {
+                id: activeColorField
+                Layout.preferredWidth: 90
+                placeholderText: "#RRGGBB"
+                Component.onCompleted: text = root.normalizeToHex(cfg_activeColor)
+                onEditingFinished: {
+                    var c = Qt.color(text)
+                    if (c.valid) cfg_activeColor = root.normalizeToHex(text)
+                }
+            }
+        }
+
+        RowLayout {
+            Kirigami.FormData.label: i18n("Inactive Color:")
+            visible: customColorsCheck.checked && !dynamicColorsCheck.checked
+            spacing: Kirigami.Units.smallSpacing
+
+            Rectangle {
+                width: 24; height: 24; radius: 4
+                color: (cfg_inactiveColor && Qt.color(cfg_inactiveColor).valid) ? cfg_inactiveColor : "#808080"
+                border.color: Kirigami.Theme.separatorColor || "#55808080"
+                border.width: 1
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        inactiveColorDialog.selectedColor = Qt.color(cfg_inactiveColor || "#808080")
+                        inactiveColorDialog.open()
+                    }
+                }
+            }
+
+            QQC2.TextField {
+                id: inactiveColorField
+                Layout.preferredWidth: 90
+                placeholderText: "#RRGGBB"
+                Component.onCompleted: text = root.normalizeToHex(cfg_inactiveColor)
+                onEditingFinished: {
+                    var c = Qt.color(text)
+                    if (c.valid) cfg_inactiveColor = root.normalizeToHex(text)
+                }
+            }
+        }
+
+        Kirigami.Heading {
+            Kirigami.FormData.isSection: true
+            text: i18n("Behavior")
+        }
+
+        QQC2.ComboBox {
+            id: navigationModeCombo
+            Kirigami.FormData.label: i18n("Switching Mode:")
+            model: [
+                i18n("Cycle (continuous loop)"),
+                i18n("Fixed (stop at first and last workspace)")
+            ]
+            Component.onCompleted: {
+                // The cfg_navigationMode alias already loaded the saved index into currentIndex.
+                // Just sync the derived cfg_desktopWrapOn property on load.
+                root.cfg_desktopWrapOn = (currentIndex === 0)
+            }
+            onCurrentIndexChanged: {
+                root.cfg_desktopWrapOn = (currentIndex === 0)
+            }
+        }
+
+        QQC2.Label {
+            text: navigationModeCombo.currentIndex === 0
+                ? i18n("Scrolling continuously cycles across workspaces (1 → 2 → 3 → 1).")
+                : i18n("Scrolling stops at boundaries without looping back to the beginning.")
+            font.italic: true
+            opacity: 0.7
+            wrapMode: Text.WordWrap
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 20
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 20
+        }
+
+        QQC2.SpinBox {
+            id: animationSpin
+            Kirigami.FormData.label: i18n("Animation (ms):")
+            from: 0; to: 1000; stepSize: 50
+        }
+
+        QQC2.CheckBox {
+            id: addDesktopsCheck
+            Kirigami.FormData.label: i18n("Desktop Management:")
+            text: i18n("Allow adding/removing via context menu")
+        }
+
+        QQC2.CheckBox {
+            id: fixedDotCountCheck
+            Kirigami.FormData.label: i18n("Fixed Dot Count:")
+            text: i18n("Show a fixed number of dots")
+        }
+
+        QQC2.SpinBox {
+            id: fixedDotCountSpin
+            Kirigami.FormData.label: i18n("Number of dots:")
+            from: 1; to: 20
+            enabled: fixedDotCountCheck.checked
+        }
     }
 }

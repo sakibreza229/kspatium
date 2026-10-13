@@ -19,30 +19,29 @@ This widget delivers GNOME's signature pill-dot workspace switcher directly to *
 
 * **Minimalist UI**: Clean indicators with smooth animations for the active desktop.
 * **Five Appearance Modes**:
-  * **Circle**: Classic GNOME-style pill dots that expand for the active desktop.
+  * **Dot**: Classic GNOME-style pill indicators that expand for the active desktop.
+  * **Ring**: Clean outlined rings with centered indicators.
   * **Square**: Modern square indicators.
   * **Desktop Name**: Displays actual desktop names from KWin (e.g., `Home`, `Work`), falling back to index numbers.
-  * **Icon**: Per-desktop Material Design icons (Home, Code, Gaming, Work, Media, Chat, Music, Browser, Design, Files) — each workspace gets its own customizable icon.
-  * **Desktop Number**: Compact labels (`D1`, `D2`, `D3`, …) bolded on the active desktop.
-* **Highly Customizable**: Adjust dot/icon/font sizes (8–24px), spacing factor (0.1–0.9), and active bar dimensions.
+  * **Desktop Number**: Compact numeric indicators (`1`, `2`, `3`, …) bolded on the active desktop.
+* **Highly Customizable**: Adjust dot/font sizes (8–24px), spacing factor (0.1–0.9), and active bar dimensions.
 * **Dynamic Wallpaper Colors**: Automatically adapt active indicator and background tones based on your current desktop wallpaper.
 * **Fixed Dot Count**: Option to display a fixed number of indicators regardless of virtual desktop count.
 * **Custom Color Picker**: Pick any color via the native system color dialog or hex code (`#RRGGBB`).
 * **Desktop Management**: Add or remove virtual desktops directly via the right-click context menu.
 * **Mouse Wheel Navigation**: Switch desktops by scrolling over the widget with optional wrap-around.
-* **Global Keyboard Shortcuts**: Configurable global shortcuts to switch to next/previous desktops.
-* **Plasma 6 Native**: Built using modern Kirigami and Plasma 6 APIs.
+* **Plasma 6 Native**: Built using modern Kirigami and Plasma 6 APIs. Shortcuts can be customized anytime in Plasma System Settings (`Shortcuts > KWin`).
 
 ## Configuration
 Right-click the widget and select **"Configure Knome Workspace Switcher..."** to access all options:
 
 | Section | Option | Description |
 |---|---|---|
-| Appearance | Shape | Circle, Square, Desktop Name, Icon, or Desktop Number |
-| Appearance | Dot / Icon / Font Size | Indicator size in px (8 to 24px) |
+| Appearance | Shape | Dot, Ring, Square, Desktop Name, or Desktop Number |
+| Appearance | Dot / Font Size | Indicator size in px (8 to 24px) |
 | Appearance | Spacing Factor | Gap between indicators as a fraction of size (0.1 to 0.9) |
 | Appearance | Side Margin | Left and right margin in px (0 to 10px) |
-| Appearance | Active Width / Height | Size of the active dot bar (Circle and Square modes only) |
+| Appearance | Active Width / Height | Size of the active dot bar (Dot and Square modes only) |
 | Colors | Dynamic Colors | Adapt indicator colors automatically from current desktop wallpaper |
 | Colors | Custom Colors | Enable custom active and inactive color overrides |
 | Colors | Active / Inactive Color | Pick via color dialog or enter a hex code (`#RRGGBB`) |
@@ -50,8 +49,6 @@ Right-click the widget and select **"Configure Knome Workspace Switcher..."** to
 | Behavior | Animation | Transition duration in milliseconds |
 | Behavior | Desktop Management | Allow adding/removing desktops via context menu |
 | Behavior | Fixed Dot Count | Display a fixed number of indicators (1 to 20) |
-| Shortcuts | Next Desktop | Global shortcut to switch to the next desktop |
-| Shortcuts | Previous Desktop | Global shortcut to switch to the previous desktop |
 
 ## Installation
 
