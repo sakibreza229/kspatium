@@ -6,9 +6,9 @@ By participating, you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Ways to contribute
 
-- **Report a bug**: [open an issue](https://github.com/sakibreza229/org.sakibreza279.kspatium/issues/new)
-- **Request a feature**: [open a feature request](https://github.com/sakibreza229/org.sakibreza279.kspatium/issues/new)
-- **Ask a question or share an idea**: use [Discussions](https://github.com/sakibreza229/org.sakibreza279.kspatium/discussions)
+- **Report a bug**: [open an issue](https://github.com/sakibreza229/kspatium/issues/new)
+- **Request a feature**: [open a feature request](https://github.com/sakibreza229/kspatium/issues/new)
+- **Ask a question or share an idea**: use [Discussions](https://github.com/sakibreza229/kspatium/discussions)
 - **Send a pull request**: see below
 
 Please search existing issues and discussions before opening a new one.
@@ -34,7 +34,7 @@ A good bug report includes:
 ### Get the code
 
 ```bash
-git clone https://github.com/sakibreza229/org.sakibreza279.kspatium.git
+git clone https://github.com/sakibreza229/kspatium.git
 cd org.sakibreza279.kspatium
 ```
 
@@ -97,4 +97,4 @@ By contributing, you agree that your contributions will be licensed under the pr
 
 ## Questions?
 
-Start a [discussion](https://github.com/sakibreza229/org.kde.plasma.knomeworkspaces/discussions). Happy to help.
+Start a [discussion](https://github.com/sakibreza229/kspatium/discussions). Happy to help.

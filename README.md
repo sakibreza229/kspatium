@@ -64,7 +64,7 @@ Or install via **Add Widgets > Get New Plugins > Install from File...** in Plasm
 ### From Source
 1. Clone the repository:
    ```bash
-   git clone https://github.com/sakibreza229/org.sakibreza279.kspatium.git
+   git clone https://github.com/sakibreza229/kspatium.git
    cd org.sakibreza279.kspatium
    ```
 
@@ -103,7 +103,7 @@ If you find **Kspatium** helpful and would like to support its development:
 [![ko-fi](https://storage.ko-fi.com/cdn/brandasset/v2/kofi_logo.png)](https://ko-fi.com/sakibreza279)
 
 - ☕ **Support on Ko-fi**: [ko-fi.com/sakibreza279](https://ko-fi.com/sakibreza279)
-- ⭐ **Star the project** on [GitHub](https://github.com/sakibreza229/org.sakibreza279.kspatium) to show your support
+- ⭐ **Star the project** on [GitHub](https://github.com/sakibreza229/kspatium) to show your support
 
 ## License
 This project is licensed under the GPL-3.0+ License.

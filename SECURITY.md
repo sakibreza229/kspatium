@@ -13,8 +13,8 @@ Security fixes are provided for the latest release only. Please update to the ne
 
 If you find a security issue in Kspatium, please report it using one of these:
 
-- **[Open an issue](https://github.com/sakibreza229/org.sakibreza279.kspatium/issues/new)**: for a specific, reproducible problem
-- **[Start a discussion](https://github.com/sakibreza229/org.sakibreza279.kspatium/discussions)**: if you're unsure whether something is a security problem
+- **[Open an issue](https://github.com/sakibreza229/kspatium/issues/new)**: for a specific, reproducible problem
+- **[Start a discussion](https://github.com/sakibreza229/kspatium/discussions)**: if you're unsure whether something is a security problem
 
 Please include:
 
