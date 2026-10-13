@@ -1,25 +1,23 @@
-# Knome Workspace Switcher — GNOME-style Virtual Desktop Switcher for Plasma 6
+# Kspatium — Minimalist Virtual Desktop Switcher for Plasma 6
 
 [![KDE Plasma](https://img.shields.io/badge/KDE_Plasma-6.0+-1d99f3?style=for-the-badge&logo=kde&logoColor=white)](https://kde.org/plasma-desktop/)
 [![Platform](https://img.shields.io/badge/Platform-Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://www.linux.org/)
 [![License: GPL-3.0+](https://img.shields.io/badge/License-GPL--3.0+-blue.svg?style=for-the-badge)](LICENSE)
 [![Support on Ko-fi](https://img.shields.io/badge/Ko--fi-sakibreza279-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/sakibreza279)
 
-**Knome Workspace Switcher** is part of the **Knome Project** — born from a deep appreciation for the strengths of both desktop worlds.
+**Kspatium** is a sleek, ultra-minimalist virtual desktop indicator and switcher crafted natively for **KDE Plasma 6**.
 
-Many Linux users love the sheer power, flexibility, and customizability of **KDE Plasma**, while also admiring the clean, distraction-free aesthetic and fluid workspace workflow of **GNOME**. For KDE users who miss certain distinctive GNOME features that aren't natively available in Plasma, **Knome** bridges that gap.
-
-This widget delivers GNOME's signature pill-dot workspace switcher directly to **KDE Plasma 6**: minimal indicators, fluid active transitions, dynamic wallpaper colors, and intuitive scrolling — combining GNOME's refined elegance with Plasma's unmatched freedom.
+Designed for users who appreciate distraction-free elegance, fluid navigation, and deep desktop customization. Kspatium provides minimal indicators, fluid active transitions, dynamic wallpaper colors, and intuitive scrolling — delivering a clean, modern aesthetic with Plasma's unmatched freedom.
 
 ## Screenshots
 
-![Knome Workspace Switcher Preview](preview.png)
+![Kspatium Preview](preview.png)
 
 ## Features
 
 * **Minimalist UI**: Clean indicators with smooth animations for the active desktop.
 * **Five Appearance Modes**:
-  * **Dot**: Classic GNOME-style pill indicators that expand for the active desktop.
+  * **Dot**: Sleek pill indicators that expand for the active desktop.
   * **Ring**: Clean outlined rings with centered indicators.
   * **Square**: Modern square indicators.
   * **Desktop Name**: Displays actual desktop names from KWin (e.g., `Home`, `Work`), falling back to index numbers.
@@ -33,7 +31,7 @@ This widget delivers GNOME's signature pill-dot workspace switcher directly to *
 * **Plasma 6 Native**: Built using modern Kirigami and Plasma 6 APIs. Shortcuts can be customized anytime in Plasma System Settings (`Shortcuts > KWin`).
 
 ## Configuration
-Right-click the widget and select **"Configure Knome Workspace Switcher..."** to access all options:
+Right-click the widget and select **"Configure Kspatium..."** to access all options:
 
 | Section | Option | Description |
 |---|---|---|
@@ -55,25 +53,25 @@ Right-click the widget and select **"Configure Knome Workspace Switcher..."** to
 ### From .plasmoid Package
 Install using `kpackagetool6`:
 ```bash
-kpackagetool6 -t Plasma/Applet -i org.kde.plasma.knomeworkspaces-v2.3.plasmoid
+kpackagetool6 -t Plasma/Applet -i org.sakibreza279.kspatium-v3.0.plasmoid
 ```
 To upgrade an existing installation:
 ```bash
-kpackagetool6 -t Plasma/Applet -u org.kde.plasma.knomeworkspaces-v2.3.plasmoid
+kpackagetool6 -t Plasma/Applet -u org.sakibreza279.kspatium-v3.0.plasmoid
 ```
 Or install via **Add Widgets > Get New Plugins > Install from File...** in Plasma.
 
 ### From Source
 1. Clone the repository:
    ```bash
-   git clone https://github.com/sakibreza229/org.kde.plasma.knomeworkspaces.git
-   cd org.kde.plasma.knomeworkspaces
+   git clone https://github.com/sakibreza229/org.sakibreza279.kspatium.git
+   cd org.sakibreza279.kspatium
    ```
 
 2. Copy the plasmoid files to your Plasma plasmoids directory:
    ```bash
-   mkdir -p ~/.local/share/plasma/plasmoids/org.kde.plasma.knomeworkspaces
-   cp -r contents metadata.json ~/.local/share/plasma/plasmoids/org.kde.plasma.knomeworkspaces/
+   mkdir -p ~/.local/share/plasma/plasmoids/org.sakibreza279.kspatium
+   cp -r contents metadata.json ~/.local/share/plasma/plasmoids/org.sakibreza279.kspatium/
    ```
 
 3. Refresh the Plasma shell cache:
@@ -100,12 +98,12 @@ Help/Support/Discussion about my projects
 
 ## Support & Sponsoring
 
-If you find **Knome Workspace Switcher** helpful and would like to support its development:
+If you find **Kspatium** helpful and would like to support its development:
 
 [![ko-fi](https://storage.ko-fi.com/cdn/brandasset/v2/kofi_logo.png)](https://ko-fi.com/sakibreza279)
 
 - ☕ **Support on Ko-fi**: [ko-fi.com/sakibreza279](https://ko-fi.com/sakibreza279)
-- ⭐ **Star the project** on [GitHub](https://github.com/sakibreza229/org.kde.plasma.knomeworkspaces) to show your support
+- ⭐ **Star the project** on [GitHub](https://github.com/sakibreza229/org.sakibreza279.kspatium) to show your support
 
 ## License
 This project is licensed under the GPL-3.0+ License.

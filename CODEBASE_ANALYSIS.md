@@ -1,8 +1,8 @@
-# Knome Workspace Switcher — Codebase Architecture & Audit Report
+# Kspatium — Codebase Architecture & Audit Report
 
-**Widget ID:** `org.kde.plasma.knomeworkspaces`  
+**Widget ID:** `org.sakibreza279.kspatium`  
 **Target Platform:** KDE Plasma 6 (QML / QtQuick / Kirigami)  
-**Version:** 2.3  
+**Version:** 3.0  
 **Analysis Date:** 2026-10-13  
 
 ---
@@ -10,18 +10,17 @@
 ## 1. Project Overview & File Hierarchy
 
 ```
-org.kde.plasma.knomeworkspaces/
+org.sakibreza279.kspatium/
 ├── metadata.json                 # Plasma 6 applet package metadata
 ├── preview.png                   # Store / UI preview image
-├── README.md, CHANGELOG.md, ...  # Documentation & project info
+├── README.md, ...                # Documentation & project info
 └── contents/
     ├── config/
     │   ├── config.qml            # Configuration categories registration
     │   └── main.xml              # KConfig XML schema for settings
     └── ui/
         ├── configGeneral.qml     # Widget settings GUI (Kirigami form)
-        ├── main.qml              # Main widget item and rendering logic
-        └── icons/                # 13 symbolic SVGs used in Icon shape mode
+        └── main.qml              # Main widget item and rendering logic
 ```
 
 ---

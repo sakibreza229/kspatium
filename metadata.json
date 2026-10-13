@@ -8,17 +8,17 @@
             }
         ],
         "Category": "Windows and Tasks",
-        "Description": "GNOME-like virtual desktops switcher for Plasma 6",
+        "Description": "Minimalist virtual desktops switcher for Plasma 6",
         "EnabledByDefault": true,
         "Icon": "preferences-desktop-virtual",
-        "Id": "org.kde.plasma.knomeworkspaces",
+        "Id": "org.sakibreza279.kspatium",
         "License": "GPL-3.0+",
-        "Name": "Knome Workspace Switcher",
+        "Name": "Kspatium",
         "ServiceTypes": [
             "Plasma/Applet"
         ],
-        "Version": "2.3",
-        "Website": "https://github.com/sakibreza229/org.kde.plasma.knomeworkspaces"
+        "Version": "3.0",
+        "Website": "https://github.com/sakibreza229/org.sakibreza279.kspatium"
     },
     "X-Plasma-API-Minimum-Version": "6.0",
     "X-Plasma-Provides": [
@@ -31,7 +31,8 @@
         "workspace",
         "switcher",
         "desktop",
-        "grid",
-        "gnome"
+        "kspatium",
+        "spaces",
+        "minimal"
     ]
 }

@@ -1,4 +1,4 @@
-# Contributing to Knome Workspace Switcher
+# Contributing to Kspatium
 
 Thanks for your interest in contributing! Bug reports, feature ideas, and pull requests are all welcome.
 
@@ -6,9 +6,9 @@ By participating, you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Ways to contribute
 
-- **Report a bug**: [open an issue](https://github.com/sakibreza229/org.kde.plasma.knomeworkspaces/issues/new?template=bug_report.yml)
-- **Request a feature**: [open a feature request](https://github.com/sakibreza229/org.kde.plasma.knomeworkspaces/issues/new?template=feature_request.yml)
-- **Ask a question or share an idea**: use [Discussions](https://github.com/sakibreza229/org.kde.plasma.knomeworkspaces/discussions)
+- **Report a bug**: [open an issue](https://github.com/sakibreza229/org.sakibreza279.kspatium/issues/new)
+- **Request a feature**: [open a feature request](https://github.com/sakibreza229/org.sakibreza279.kspatium/issues/new)
+- **Ask a question or share an idea**: use [Discussions](https://github.com/sakibreza229/org.sakibreza279.kspatium/discussions)
 - **Send a pull request**: see below
 
 Please search existing issues and discussions before opening a new one.
@@ -34,8 +34,8 @@ A good bug report includes:
 ### Get the code
 
 ```bash
-git clone https://github.com/sakibreza229/org.kde.plasma.knomeworkspaces.git
-cd org.kde.plasma.knomeworkspaces
+git clone https://github.com/sakibreza229/org.sakibreza279.kspatium.git
+cd org.sakibreza279.kspatium
 ```
 
 ### Install for testing
@@ -58,14 +58,13 @@ If changes don't appear, restart the shell:
 systemctl --user restart plasma-plasmashell
 ```
 
-Then add **Knome Workspace Switcher** to your panel via **Add Widgets**.
+Then add **Kspatium** to your panel via **Add Widgets**.
 
 ### Project structure
 
 ```
 contents/        QML source, config, and UI files
 metadata.json    Plasmoid metadata (name, version, ID)
-CHANGELOG.md     Notable changes per version
 ```
 
 ## Submitting a pull request
