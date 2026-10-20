@@ -53,6 +53,31 @@ PlasmoidItem {
         if (dynamicColors) checkWallpaper()
     }
 
+    // Instantly react to wallpaper changes via DBus signal
+    Plasma5Support.DataSource {
+        id: wallpaperSignalWatcher
+        engine: "executable"
+        connectedSources: []
+
+        Component.onCompleted: {
+            if (dynamicColors) startWatching()
+        }
+
+        function startWatching() {
+            let cmd = 'gdbus monitor --session --dest org.kde.plasmashell --object-path /PlasmaShell'
+            connectSource(cmd)
+        }
+
+        onNewData: function(source, data) {
+            let stdout = data["stdout"] ? data["stdout"] : ""
+            if (stdout.indexOf("wallpaperChanged") !== -1 || stdout.indexOf("colorChanged") !== -1) {
+                wallpaperCanvas.hasValidSample = false
+                currentWallpaperPath = ""
+                checkWallpaper()
+            }
+        }
+    }
+
     property color activeColor: {
         if (dynamicColors) return dynamicActiveColor
         if (!customColors) {
@@ -165,16 +190,33 @@ PlasmoidItem {
 
     function checkWallpaper() {
         if (!dynamicColors) return
-        let scr = (plasmoid.screen !== undefined && plasmoid.screen >= 0) ? plasmoid.screen : 0
+        let scr = (root.screen !== undefined && root.screen >= 0)
+            ? root.screen
+            : ((Plasmoid.containment && Plasmoid.containment.screen !== undefined && Plasmoid.containment.screen >= 0)
+                ? Plasmoid.containment.screen
+                : 0)
         // Append a timestamp comment to avoid DataSource caching identical commands
         let ts = Date.now()
-        let cmd = 'sh -c \'SCR=' + scr + '; RAW=$(qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.wallpaper "$SCR" 2>/dev/null | grep -m1 -E "^Image: " | sed "s/^Image: //"); [ -z "$RAW" ] && RAW=$(grep -m1 -E "^Image=" ~/.config/plasma-org.kde.plasma.desktop-appletsrc 2>/dev/null | cut -d= -f2-); RAW=$(echo "$RAW" | sed "s|^file://||"); if [ -d "$RAW" ]; then IMG=$(find "$RAW" -type f \\( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.webp" \\) 2>/dev/null | head -n1); else IMG="$RAW"; fi; [ -n "$IMG" ] && echo "WALLPAPER:file://$IMG"; COLOR=$(qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.color 2>/dev/null); [ -n "$COLOR" ] && echo "COLOR:$COLOR"\' #ts=' + ts
+        let cmd = 'sh -c \'SCR=' + scr + '; ' +
+            'RAW=$(qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.wallpaper "$SCR" 2>/dev/null | grep -m1 -E "^Image: " | sed "s/^Image: //"); ' +
+            '[ -z "$RAW" ] && RAW=$(grep -m1 -E "^Image=" ~/.config/plasma-org.kde.plasma.desktop-appletsrc 2>/dev/null | cut -d= -f2-); ' +
+            'RAW=$(echo "$RAW" | sed "s|^file://||"); ' +
+            'if [ -d "$RAW" ]; then ' +
+                'IMG=$(find "$RAW" -type f \\( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.webp" \\) 2>/dev/null | head -n1); ' +
+            'else ' +
+                'IMG="$RAW"; ' +
+            'fi; ' +
+            '[ -n "$IMG" ] && echo "WALLPAPER:file://$IMG"; ' +
+            'COLOR=$(qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.color 2>/dev/null); ' +
+            '[ -n "$COLOR" ] && echo "COLOR:$COLOR"; ' +
+            'ACCENT_FROM_WP=$(kreadconfig6 --group "General" --key "accentColorFromWallpaper" 2>/dev/null); ' +
+            'echo "ACCENT_FROM_WP:$ACCENT_FROM_WP"\' #ts=' + ts
         wallpaperExec.connectSource(cmd)
     }
 
     Timer {
         id: wallpaperTimer
-        interval: 30000
+        interval: 10000
         running: dynamicColors
         repeat: true
         onTriggered: checkWallpaper()
@@ -182,9 +224,10 @@ PlasmoidItem {
 
     Canvas {
         id: wallpaperCanvas
-        width: 20
-        height: 20
+        width: 32
+        height: 32
         visible: false
+        renderTarget: Canvas.Image
 
         property bool hasValidSample: false
         property string pendingImageUrl: ""
@@ -199,47 +242,51 @@ PlasmoidItem {
 
             var data = imgData.data
             var bestColor = null
-            var maxVibrancy = -1
+            var maxScore = -1
 
             for (var i = 0; i < data.length; i += 4) {
-                var r = data[i]
-                var g = data[i + 1]
-                var b = data[i + 2]
+                var r = data[i] / 255.0
+                var g = data[i + 1] / 255.0
+                var b = data[i + 2] / 255.0
 
                 var max = Math.max(r, g, b), min = Math.min(r, g, b)
                 var delta = max - min
                 var sat = max === 0 ? 0 : delta / max
-                var val = max / 255.0
+                var val = max
 
-                var vibrancy = sat * (1.0 - Math.abs(val - 0.6) * 1.4)
-                if (vibrancy > maxVibrancy) {
-                    maxVibrancy = vibrancy
-                    bestColor = { r: r / 255.0, g: g / 255.0, b: b / 255.0 }
+                // Skip washed out greys, near-blacks and pure whites
+                if (sat < 0.18 || val < 0.2) continue
+
+                // Favor vibrant, well-lit colors (peak preference at val ~0.8)
+                var score = sat * 1.6 + (1.0 - Math.abs(val - 0.8) * 1.2)
+                if (score > maxScore) {
+                    maxScore = score
+                    bestColor = { r: r, g: g, b: b }
                 }
             }
 
             var themeText = Kirigami.Theme.textColor
             var isDarkTheme = (themeText.r * 0.299 + themeText.g * 0.587 + themeText.b * 0.114) > 0.5
 
-            if (!bestColor || maxVibrancy < 0.1) {
+            if (!bestColor || maxScore < 0.1) {
                 bestColor = isDarkTheme ? { r: 0.85, g: 0.85, b: 0.85 } : { r: 0.2, g: 0.2, b: 0.2 }
             } else {
-                var colorLuma = 0.299 * bestColor.r + 0.587 * bestColor.g + 0.114 * bestColor.b
-                if (isDarkTheme && colorLuma < 0.45) {
-                    var factor = 0.55 / Math.max(0.1, colorLuma)
-                    bestColor.r = Math.min(1.0, bestColor.r * factor)
-                    bestColor.g = Math.min(1.0, bestColor.g * factor)
-                    bestColor.b = Math.min(1.0, bestColor.b * factor)
-                } else if (!isDarkTheme && colorLuma > 0.65) {
-                    var dimFactor = 0.5 / colorLuma
-                    bestColor.r = bestColor.r * dimFactor
-                    bestColor.g = bestColor.g * dimFactor
-                    bestColor.b = bestColor.b * dimFactor
+                var luma = 0.299 * bestColor.r + 0.587 * bestColor.g + 0.114 * bestColor.b
+                if (isDarkTheme && luma < 0.5) {
+                    var boost = Math.min(2.0, 0.55 / Math.max(0.1, luma))
+                    bestColor.r = Math.min(1.0, bestColor.r * boost)
+                    bestColor.g = Math.min(1.0, bestColor.g * boost)
+                    bestColor.b = Math.min(1.0, bestColor.b * boost)
+                } else if (!isDarkTheme && luma > 0.55) {
+                    var dim = 0.45 / luma
+                    bestColor.r = bestColor.r * dim
+                    bestColor.g = bestColor.g * dim
+                    bestColor.b = bestColor.b * dim
                 }
             }
 
             root.dynamicActiveColor = Qt.rgba(bestColor.r, bestColor.g, bestColor.b, 1.0)
-            root.dynamicInactiveColor = isDarkTheme ? Qt.rgba(0.9, 0.9, 0.9, 0.6) : Qt.rgba(0.2, 0.2, 0.2, 0.6)
+            root.dynamicInactiveColor = isDarkTheme ? Qt.rgba(0.9, 0.9, 0.9, 0.45) : Qt.rgba(0.15, 0.15, 0.15, 0.45)
             hasValidSample = true
         }
     }
@@ -257,33 +304,48 @@ PlasmoidItem {
             let lines = stdout.split("\n")
             let wp = ""
             let col = ""
+            let accentFromWp = false
             for (let i = 0; i < lines.length; i++) {
                 let line = lines[i].trim()
                 if (line.indexOf("WALLPAPER:") === 0) {
                     wp = line.substring(10).trim()
                 } else if (line.indexOf("COLOR:") === 0) {
                     col = line.substring(6).trim()
+                } else if (line.indexOf("ACCENT_FROM_WP:") === 0) {
+                    accentFromWp = (line.substring(15).trim().toLowerCase() === "true")
                 }
             }
 
-            // Apply wallpaper image sampling
-            if (wp && wp !== currentWallpaperPath) {
-                currentWallpaperPath = wp
-                wallpaperCanvas.pendingImageUrl = wp
-                wallpaperCanvas.loadImage(wp)
-            }
+            let themeText = Kirigami.Theme.textColor
+            let isDarkTheme = (themeText.r * 0.299 + themeText.g * 0.587 + themeText.b * 0.114) > 0.5
 
-            // Use DBus accent color as immediate fallback (or primary if no image)
-            if (col) {
+            // If KDE extracts accent directly from wallpaper, use Plasma's native color
+            if (accentFromWp && col) {
                 let num = parseInt(col)
                 if (!isNaN(num) && num > 0) {
                     let r = ((num >> 16) & 0xff) / 255.0
                     let g = ((num >> 8) & 0xff) / 255.0
                     let b = (num & 0xff) / 255.0
-                    // Only use color fallback if canvas hasn't produced a result yet
-                    if (!wallpaperCanvas.hasValidSample) {
-                        root.dynamicActiveColor = Qt.rgba(r, g, b, 1.0)
-                    }
+                    root.dynamicActiveColor = Qt.rgba(r, g, b, 1.0)
+                    root.dynamicInactiveColor = isDarkTheme ? Qt.rgba(0.9, 0.9, 0.9, 0.45) : Qt.rgba(0.15, 0.15, 0.15, 0.45)
+                    return
+                }
+            }
+
+            // Otherwise, sample colors directly from the wallpaper image
+            if (wp && (wp !== currentWallpaperPath || !wallpaperCanvas.hasValidSample)) {
+                currentWallpaperPath = wp
+                wallpaperCanvas.pendingImageUrl = wp
+                wallpaperCanvas.loadImage(wp)
+            } else if (col && !wallpaperCanvas.hasValidSample) {
+                // Secondary fallback if image has not loaded yet
+                let num = parseInt(col)
+                if (!isNaN(num) && num > 0) {
+                    let r = ((num >> 16) & 0xff) / 255.0
+                    let g = ((num >> 8) & 0xff) / 255.0
+                    let b = (num & 0xff) / 255.0
+                    root.dynamicActiveColor = Qt.rgba(r, g, b, 1.0)
+                    root.dynamicInactiveColor = isDarkTheme ? Qt.rgba(0.9, 0.9, 0.9, 0.45) : Qt.rgba(0.15, 0.15, 0.15, 0.45)
                 }
             }
         }
@@ -356,7 +418,7 @@ PlasmoidItem {
                     opacity: isActive ? 1.0 : (isHovered ? 0.9 : 0.4)
                     radius: dotShape === 0 ? Math.min(width, height) * 0.5 : 2
 
-                    Behavior on color { ColorAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
+
                     Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
                     Behavior on width { NumberAnimation { duration: animDuration; easing.type: Easing.OutQuad } }
                     Behavior on height { NumberAnimation { duration: animDuration; easing.type: Easing.OutQuad } }
@@ -400,7 +462,6 @@ PlasmoidItem {
                         font.pixelSize: dotSize + 2
                         font.bold: index === currentDesktop
 
-                        Behavior on color { ColorAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
                         Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
                     }
 
@@ -440,7 +501,6 @@ PlasmoidItem {
                         font.pixelSize: dotSize + 2
                         font.bold: index === currentDesktop
 
-                        Behavior on color { ColorAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
                         Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
                     }
 
@@ -481,7 +541,6 @@ PlasmoidItem {
                         font.pixelSize: Math.max(11, dotSize + 2)
                         font.bold: index === currentDesktop
 
-                        Behavior on color { ColorAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
                         Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
                     }
 
@@ -522,7 +581,6 @@ PlasmoidItem {
                         font.pixelSize: Math.max(11, dotSize + 2)
                         font.bold: index === currentDesktop
 
-                        Behavior on color { ColorAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
                         Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
                     }
 
@@ -567,7 +625,6 @@ PlasmoidItem {
                         opacity: index === currentDesktop ? 1.0 : (isHovered ? 0.9 : 0.4)
                         antialiasing: true
 
-                        Behavior on border.color { ColorAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
                         Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
 
                         // Inner filled dot (active only) - exactly centered inside the ring
@@ -631,7 +688,6 @@ PlasmoidItem {
                         opacity: index === currentDesktop ? 1.0 : (isHovered ? 0.9 : 0.4)
                         antialiasing: true
 
-                        Behavior on border.color { ColorAnimation { duration: animDuration; easing.type: Easing.InOutQuad } }
                         Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
 
                         // Inner filled dot (active only) - exactly centered inside the ring
