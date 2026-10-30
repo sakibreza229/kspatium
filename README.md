@@ -12,7 +12,7 @@ A sleek, ultra-minimalist virtual desktop indicator and switcher widget crafted 
 
 <br/>
 
-<img src="preview.png" alt="Kspatium Preview" width="700"/>
+<img src="preview.jpg" alt="Kspatium Preview" width="700"/>
 
 <br/>
 </div>
